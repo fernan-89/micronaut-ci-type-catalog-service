@@ -1,16 +1,8 @@
 {
-  "info": {
-    "_postman_id": "f1a2b3c4-7d8e-4f9a-ab2c-3d4e5f6a7b8c",
-    "name": "CI Type Catalog Service - TypeDefinition Lifecycle Suite",
-    "description": "Enterprise-grade E2E Postman Suite for the CI Type Catalog Service Domain (BIAN-aligned, ADR-001/005/013/019/030/031/032). Covers the TypeDefinition lifecycle under /ci-type-catalog/v1 (initiate, retrieve, update, control/activate, control/deactivate, active-schema/retrieve), the audit ledger, the one-ACTIVE-per-category invariant, mandatory X-Tenant-Id/X-Executor auditing, RFC 7807 error_code assertions (400/404/409) and W3C traceparent correlation. Requires an organisationId environment variable populated from the Party Reference Data Directory Service Domain.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "39879181"
-  },
   "event": [
     {
       "listen": "prerequest",
       "script": {
-        "type": "text/javascript",
         "exec": [
           "// Automatically generate standard W3C traceparent (ADR-010) and X-Trace-Id",
           "function generateHex(len) {",
@@ -27,169 +19,174 @@
           "pm.request.headers.upsert({ key: 'traceparent', value: traceparent });",
           "pm.request.headers.upsert({ key: 'X-Trace-Id', value: traceId });",
           "pm.environment.set('currentTraceId', traceId);"
-        ]
+        ],
+        "type": "text/javascript"
       }
     }
   ],
+  "info": {
+    "_exporter_id": "39879181",
+    "_postman_id": "f1a2b3c4-7d8e-4f9a-ab2c-3d4e5f6a7b8c",
+    "description": "Enterprise-grade E2E Postman Suite for the CI Type Catalog Service Domain (BIAN-aligned, ADR-001/005/013/019/030/031/032). Covers the TypeDefinition lifecycle under /ci-type-catalog/v1 (initiate, retrieve, update, control/activate, control/deactivate, active-schema/retrieve), the audit ledger, the one-ACTIVE-per-category invariant, mandatory X-Tenant-Id/X-Executor auditing, RFC 7807 error_code assertions (400/404/409) and W3C traceparent correlation. Requires an organisationId environment variable populated from the Party Reference Data Directory Service Domain.",
+    "name": "CI Type Catalog Service - TypeDefinition Lifecycle Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
   "item": [
     {
-      "name": "00. Infrastructure & Telemetry",
       "item": [
         {
-          "name": "Health Check (Aggregated)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Health status is UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "Health Check (Aggregated)",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/health",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "health"
-              ]
+              ],
+              "raw": "{{base_url}}/health"
             }
           }
         },
         {
-          "name": "Liveness Probe",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Liveness status is UP or UNKNOWN (no probe contributors registered)', () => pm.expect(['UP', 'UNKNOWN']).to.include(pm.response.json().status));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "Liveness Probe",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/health/liveness",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "health",
                 "liveness"
-              ]
+              ],
+              "raw": "{{base_url}}/health/liveness"
             }
           }
         },
         {
-          "name": "Readiness Probe",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Readiness status is UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "Readiness Probe",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/health/readiness",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "health",
                 "readiness"
-              ]
+              ],
+              "raw": "{{base_url}}/health/readiness"
             }
           }
         },
         {
-          "name": "Prometheus Metrics",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Contains JVM metrics', () => pm.expect(pm.response.text()).to.include('jvm_memory'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "Prometheus Metrics",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/prometheus",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "prometheus"
-              ]
+              ],
+              "raw": "{{base_url}}/prometheus"
             }
           }
         },
         {
-          "name": "Swagger UI",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Returns Swagger UI HTML', () => pm.expect(pm.response.text()).to.include('swagger-ui'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "Swagger UI",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/swagger-ui/index.html",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "swagger-ui",
                 "index.html"
-              ]
+              ],
+              "raw": "{{base_url}}/swagger-ui/index.html"
             }
           }
         }
-      ]
+      ],
+      "name": "00. Infrastructure & Telemetry"
     },
     {
-      "name": "01. Lifecycle (BIAN Behavior Qualifiers)",
       "item": [
         {
-          "name": "01. Initiate TypeDefinition (Control Record, category=LAPTOP)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
@@ -199,12 +196,17 @@
                   "    pm.expect(json.category).to.eql('LAPTOP');",
                   "});",
                   "pm.environment.set('typeDefinitionId', json.id);"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "01. Initiate TypeDefinition (Control Record, category=LAPTOP)",
           "request": {
-            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"LAPTOP\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -219,8 +221,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -228,34 +230,30 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"LAPTOP\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "02. Retrieve TypeDefinition By ID",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test('jsonSchema matches', () => pm.expect(json.jsonSchema).to.eql(\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\".replace(/\\\\\"/g, '\"')));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "02. Retrieve TypeDefinition By ID",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/retrieve",
               "host": [
                 "{{base_url}}"
               ],
@@ -264,25 +262,29 @@
                 "v1",
                 "{{typeDefinitionId}}",
                 "retrieve"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/retrieve"
             }
           }
         },
         {
-          "name": "03. Update Schema (DRAFT -> DRAFT, legal)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "03. Update Schema (DRAFT -> DRAFT, legal)",
           "request": {
-            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -293,8 +295,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/update",
               "host": [
                 "{{base_url}}"
               ],
@@ -303,37 +305,33 @@
                 "v1",
                 "{{typeDefinitionId}}",
                 "update"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/update"
             }
           }
         },
         {
-          "name": "04. Control: Activate (DRAFT -> ACTIVE)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "04. Control: Activate (DRAFT -> ACTIVE)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/activate",
               "host": [
                 "{{base_url}}"
               ],
@@ -343,29 +341,29 @@
                 "{{typeDefinitionId}}",
                 "control",
                 "activate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/activate"
             }
           }
         },
         {
-          "name": "05. Retrieve (Confirm ACTIVE)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('status is ACTIVE', () => pm.expect(pm.response.json().status).to.eql('ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "05. Retrieve (Confirm ACTIVE)",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/retrieve",
               "host": [
                 "{{base_url}}"
               ],
@@ -374,17 +372,16 @@
                 "v1",
                 "{{typeDefinitionId}}",
                 "retrieve"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/retrieve"
             }
           }
         },
         {
-          "name": "06. Active Schema Retrieve (the cross-service lookup)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
@@ -392,20 +389,21 @@
                   "    pm.expect(json.id).to.eql(pm.environment.get('typeDefinitionId'));",
                   "    pm.expect(json.category).to.eql('LAPTOP');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "06. Active Schema Retrieve (the cross-service lookup)",
           "request": {
-            "method": "GET",
             "header": [
               {
                 "key": "X-Tenant-Id",
                 "value": "{{organisationId}}"
               }
             ],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/active-schema/retrieve?category=LAPTOP",
               "host": [
                 "{{base_url}}"
               ],
@@ -420,33 +418,33 @@
                   "key": "category",
                   "value": "LAPTOP"
                 }
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/active-schema/retrieve?category=LAPTOP"
             }
           }
         },
         {
-          "name": "07. Control: Deactivate (ACTIVE -> INACTIVE)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "07. Control: Deactivate (ACTIVE -> INACTIVE)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/deactivate",
               "host": [
                 "{{base_url}}"
               ],
@@ -456,25 +454,29 @@
                 "{{typeDefinitionId}}",
                 "control",
                 "deactivate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/deactivate"
             }
           }
         },
         {
-          "name": "08. Update Schema (INACTIVE -> INACTIVE, legal)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "08. Update Schema (INACTIVE -> INACTIVE, legal)",
           "request": {
-            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -485,8 +487,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/update",
               "host": [
                 "{{base_url}}"
               ],
@@ -495,37 +497,33 @@
                 "v1",
                 "{{typeDefinitionId}}",
                 "update"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/update"
             }
           }
         },
         {
-          "name": "09. Control: Re-activate (INACTIVE -> ACTIVE)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "09. Control: Re-activate (INACTIVE -> ACTIVE)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/activate",
               "host": [
                 "{{base_url}}"
               ],
@@ -535,17 +533,16 @@
                 "{{typeDefinitionId}}",
                 "control",
                 "activate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/activate"
             }
           }
         },
         {
-          "name": "10. Retrieve Audit Ledger (in order, starting with INITIATED)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
@@ -554,15 +551,16 @@
                   "    pm.expect(json[0].action).to.eql('INITIATED');",
                   "    pm.expect(json[json.length - 1].toStatus).to.eql('ACTIVE');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "10. Retrieve Audit Ledger (in order, starting with INITIATED)",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/audit-log/retrieve",
               "host": [
                 "{{base_url}}"
               ],
@@ -572,34 +570,34 @@
                 "{{typeDefinitionId}}",
                 "audit-log",
                 "retrieve"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/audit-log/retrieve"
             }
           }
         },
         {
-          "name": "11. Retrieve TypeDefinitions (collection, filter category=LAPTOP)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
                   "pm.test('Contains the definition', () => pm.expect(pm.response.json().some(td => td.id === pm.environment.get('typeDefinitionId'))).to.be.true);"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "11. Retrieve TypeDefinitions (collection, filter category=LAPTOP)",
           "request": {
-            "method": "GET",
             "header": [
               {
                 "key": "X-Tenant-Id",
                 "value": "{{organisationId}}"
               }
             ],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/retrieve?category=LAPTOP",
               "host": [
                 "{{base_url}}"
               ],
@@ -613,22 +611,57 @@
                   "key": "category",
                   "value": "LAPTOP"
                 }
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/retrieve?category=LAPTOP"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "12. Teardown: Deactivate (no ACTIVE schema left behind for LAPTOP in the shared tenant)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "{{typeDefinitionId}}",
+                "control",
+                "deactivate"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/deactivate"
             }
           }
         }
-      ]
+      ],
+      "name": "01. Lifecycle (BIAN Behavior Qualifiers)"
     },
     {
-      "name": "02. Negative Tests & Boundary Validation",
       "item": [
         {
-          "name": "01. Initiate - Missing category (400)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 400', () => pm.response.to.have.status(400));",
                   "const json = pm.response.json();",
@@ -636,63 +669,17 @@
                   "    pm.expect(json.status).to.eql(400);",
                   "    pm.expect(json.error_code).to.eql('ERR-VALIDATION-00400');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "01. Initiate - Missing category (400)",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Tenant-Id",
-                "value": "{{organisationId}}"
-              },
-              {
-                "key": "X-Executor",
-                "value": "{{executor}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "ci-type-catalog",
-                "v1",
-                "initiate"
-              ]
-            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
-            }
-          }
-        },
-        {
-          "name": "02. Initiate - Blank jsonSchema (400)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
-                  "const json = pm.response.json();",
-                  "pm.test('RFC 7807 error_code is ERR-VALIDATION-00400', () => {",
-                  "    pm.expect(json.status).to.eql(400);",
-                  "    pm.expect(json.error_code).to.eql('ERR-VALIDATION-00400');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -707,8 +694,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -716,21 +703,67 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "03. Initiate - Malformed JSON Schema text (400, ERR-CTC-00400)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('RFC 7807 error_code is ERR-VALIDATION-00400', () => {",
+                  "    pm.expect(json.status).to.eql(400);",
+                  "    pm.expect(json.error_code).to.eql('ERR-VALIDATION-00400');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "02. Initiate - Blank jsonSchema (400)",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"\"\n}"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "initiate"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
                 "exec": [
                   "pm.test('Status is 400', () => pm.response.to.have.status(400));",
                   "const json = pm.response.json();",
@@ -738,12 +771,17 @@
                   "    pm.expect(json.status).to.eql(400);",
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00400');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "03. Initiate - Malformed JSON Schema text (400, ERR-CTC-00400)",
           "request": {
-            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"{not json\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -758,8 +796,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -767,29 +805,29 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"{not json\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "04. Initiate - Missing X-Tenant-Id Header (400)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "04. Initiate - Missing X-Tenant-Id Header (400)",
           "request": {
-            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -800,8 +838,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -809,21 +847,16 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"DESKTOP\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "05. Retrieve - Non-existent UUID (404)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 404', () => pm.response.to.have.status(404));",
                   "const json = pm.response.json();",
@@ -831,15 +864,16 @@
                   "    pm.expect(json.status).to.eql(404);",
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00404');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "05. Retrieve - Non-existent UUID (404)",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/00000000-0000-0000-0000-000000000000/retrieve",
               "host": [
                 "{{base_url}}"
               ],
@@ -848,28 +882,28 @@
                 "v1",
                 "00000000-0000-0000-0000-000000000000",
                 "retrieve"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/00000000-0000-0000-0000-000000000000/retrieve"
             }
           }
         },
         {
-          "name": "06. Retrieve - Malformed UUID Path (400)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "06. Retrieve - Malformed UUID Path (400)",
           "request": {
-            "method": "GET",
             "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/not-a-uuid/retrieve",
               "host": [
                 "{{base_url}}"
               ],
@@ -878,17 +912,16 @@
                 "v1",
                 "not-a-uuid",
                 "retrieve"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/not-a-uuid/retrieve"
             }
           }
         },
         {
-          "name": "07. Active Schema Retrieve - None configured for SERVER yet (404, ERR-CTC-00404)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 404', () => pm.response.to.have.status(404));",
                   "const json = pm.response.json();",
@@ -896,20 +929,21 @@
                   "    pm.expect(json.status).to.eql(404);",
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00404');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "07. Active Schema Retrieve - None configured for SERVER yet (404, ERR-CTC-00404)",
           "request": {
-            "method": "GET",
             "header": [
               {
                 "key": "X-Tenant-Id",
                 "value": "{{organisationId}}"
               }
             ],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/active-schema/retrieve?category=SERVER",
               "host": [
                 "{{base_url}}"
               ],
@@ -924,26 +958,30 @@
                   "key": "category",
                   "value": "SERVER"
                 }
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/active-schema/retrieve?category=SERVER"
             }
           }
         },
         {
-          "name": "08. Setup: Initiate TypeDefinition (category=SERVER) for the uniqueness/illegal-transition tests",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
                   "pm.environment.set('serverTypeDefinitionId', pm.response.json().id);"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "08. Setup: Initiate TypeDefinition (category=SERVER) for the uniqueness/illegal-transition tests",
           "request": {
-            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"SERVER\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -958,8 +996,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -967,21 +1005,16 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"SERVER\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"cpu\\\"]}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "09. Control: Deactivate a DRAFT TypeDefinition - Illegal (409)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 409', () => pm.response.to.have.status(409));",
                   "const json = pm.response.json();",
@@ -989,20 +1022,21 @@
                   "    pm.expect(json.status).to.eql(409);",
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00409');",
                   "});"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "09. Control: Deactivate a DRAFT TypeDefinition - Illegal (409)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/control/deactivate",
               "host": [
                 "{{base_url}}"
               ],
@@ -1012,33 +1046,33 @@
                 "{{serverTypeDefinitionId}}",
                 "control",
                 "deactivate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/control/deactivate"
             }
           }
         },
         {
-          "name": "10. Control: Activate the SERVER definition (Setup)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "10. Control: Activate the SERVER definition (Setup)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/control/activate",
               "host": [
                 "{{base_url}}"
               ],
@@ -1048,17 +1082,16 @@
                 "{{serverTypeDefinitionId}}",
                 "control",
                 "activate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/control/activate"
             }
           }
         },
         {
-          "name": "11. Update Schema While ACTIVE - Illegal (409)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 409', () => pm.response.to.have.status(409));",
                   "const json = pm.response.json();",
@@ -1067,12 +1100,17 @@
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00409');",
                   "});",
                   "pm.test('Detail explains the illegal edit', () => pm.expect(json.detail).to.include('ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "11. Update Schema While ACTIVE - Illegal (409)",
           "request": {
-            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -1083,8 +1121,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/update",
               "host": [
                 "{{base_url}}"
               ],
@@ -1093,30 +1131,30 @@
                 "v1",
                 "{{serverTypeDefinitionId}}",
                 "update"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/update"
             }
           }
         },
         {
-          "name": "12. Setup: Initiate a second TypeDefinition for the same category=SERVER",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
                   "pm.environment.set('secondServerTypeDefinitionId', pm.response.json().id);"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "12. Setup: Initiate a second TypeDefinition for the same category=SERVER",
           "request": {
-            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"SERVER\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -1131,8 +1169,8 @@
                 "value": "{{executor}}"
               }
             ],
+            "method": "POST",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/initiate",
               "host": [
                 "{{base_url}}"
               ],
@@ -1140,21 +1178,16 @@
                 "ci-type-catalog",
                 "v1",
                 "initiate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"SERVER\",\n  \"jsonSchema\": \"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"cpu\\\":{\\\"type\\\":\\\"string\\\"},\\\"ram\\\":{\\\"type\\\":\\\"string\\\"}}}\"\n}"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/initiate"
             }
           }
         },
         {
-          "name": "13. Control: Activate the second SERVER definition - Duplicate ACTIVE (409, ERR-CTC-00409)",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 409', () => pm.response.to.have.status(409));",
                   "const json = pm.response.json();",
@@ -1163,20 +1196,21 @@
                   "    pm.expect(json.error_code).to.eql('ERR-CTC-00409');",
                   "});",
                   "pm.test('Detail explains the duplicate-active conflict', () => pm.expect(json.detail).to.include('ACTIVE'));"
-                ]
+                ],
+                "type": "text/javascript"
               }
             }
           ],
+          "name": "13. Control: Activate the second SERVER definition - Duplicate ACTIVE (409, ERR-CTC-00409)",
           "request": {
-            "method": "PUT",
             "header": [
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
               }
             ],
+            "method": "PUT",
             "url": {
-              "raw": "{{base_url}}/ci-type-catalog/v1/{{secondServerTypeDefinitionId}}/control/activate",
               "host": [
                 "{{base_url}}"
               ],
@@ -1186,11 +1220,49 @@
                 "{{secondServerTypeDefinitionId}}",
                 "control",
                 "activate"
-              ]
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{secondServerTypeDefinitionId}}/control/activate"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "14. Teardown: Deactivate the SERVER definition (no ACTIVE schema left behind in the shared tenant)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "{{serverTypeDefinitionId}}",
+                "control",
+                "deactivate"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{serverTypeDefinitionId}}/control/deactivate"
             }
           }
         }
-      ]
+      ],
+      "name": "02. Negative Tests & Boundary Validation"
     }
   ],
   "variable": [
