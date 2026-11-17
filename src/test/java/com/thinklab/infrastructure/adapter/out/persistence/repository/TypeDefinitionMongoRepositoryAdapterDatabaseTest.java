@@ -40,7 +40,7 @@ class TypeDefinitionMongoRepositoryAdapterDatabaseTest {
     void usesTheConfiguredDatabase() {
         MongoClient client = clientServing("catalog");
 
-        new TypeDefinitionMongoRepositoryAdapter(client, "mongodb://mongo:27017/catalog").findById(UUID.randomUUID()).block();
+        new TypeDefinitionMongoRepositoryAdapter(client, "mongodb://mongo:27017/catalog").findById(UUID.randomUUID(), UUID.randomUUID()).block();
 
         verify(client).getDatabase("catalog");
     }
@@ -50,7 +50,7 @@ class TypeDefinitionMongoRepositoryAdapterDatabaseTest {
     void fallsBackToTheDefaultDatabase() {
         MongoClient client = clientServing(TypeDefinitionMongoRepositoryAdapter.DEFAULT_DATABASE);
 
-        new TypeDefinitionMongoRepositoryAdapter(client, "mongodb://mongo:27017").findById(UUID.randomUUID()).block();
+        new TypeDefinitionMongoRepositoryAdapter(client, "mongodb://mongo:27017").findById(UUID.randomUUID(), UUID.randomUUID()).block();
 
         verify(client).getDatabase(TypeDefinitionMongoRepositoryAdapter.DEFAULT_DATABASE);
     }

@@ -42,6 +42,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TypeDefinitionControllerTest {
 
+    private static final String TENANT = UUID.randomUUID().toString();
+
     private static final String EXECUTOR = "catalog-admin";
 
     @Mock private InitiateTypeDefinitionUseCase initiateTypeDefinitionUseCase;
@@ -104,9 +106,9 @@ class TypeDefinitionControllerTest {
     @Test
     @DisplayName("retrieveById should return 200 OK")
     void retrieveById() {
-        when(retrieveTypeDefinitionUseCase.execute(typeDefinitionId)).thenReturn(Mono.just(sample));
+        when(retrieveTypeDefinitionUseCase.execute(typeDefinitionId, UUID.fromString(TENANT))).thenReturn(Mono.just(sample));
 
-        StepVerifier.create(controller.retrieveById(typeDefinitionId))
+        StepVerifier.create(controller.retrieveById(typeDefinitionId, TENANT))
                 .assertNext(response -> {
                     assertEquals(HttpStatus.OK, response.getStatus());
                     assertEquals("NETWORK_DEVICE", response.body().category());
@@ -117,9 +119,9 @@ class TypeDefinitionControllerTest {
     @Test
     @DisplayName("retrieveById should surface not-found from the use case")
     void retrieveByIdNotFound() {
-        when(retrieveTypeDefinitionUseCase.execute(typeDefinitionId)).thenReturn(Mono.error(new TypeDefinitionNotFoundException(typeDefinitionId)));
+        when(retrieveTypeDefinitionUseCase.execute(typeDefinitionId, UUID.fromString(TENANT))).thenReturn(Mono.error(new TypeDefinitionNotFoundException(typeDefinitionId)));
 
-        StepVerifier.create(controller.retrieveById(typeDefinitionId)).expectError(TypeDefinitionNotFoundException.class).verify();
+        StepVerifier.create(controller.retrieveById(typeDefinitionId, TENANT)).expectError(TypeDefinitionNotFoundException.class).verify();
     }
 
     @Test
@@ -138,36 +140,36 @@ class TypeDefinitionControllerTest {
     @DisplayName("update should return 204 No Content and pass the executor to the use case")
     void update() {
         UpdateTypeDefinitionRequest request = new UpdateTypeDefinitionRequest("{\"type\":\"string\"}");
-        when(updateTypeDefinitionUseCase.execute(typeDefinitionId, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(updateTypeDefinitionUseCase.execute(typeDefinitionId, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        StepVerifier.create(controller.update(typeDefinitionId, EXECUTOR, request))
+        StepVerifier.create(controller.update(typeDefinitionId, TENANT, EXECUTOR, request))
                 .assertNext(response -> assertEquals(HttpStatus.NO_CONTENT, response.getStatus()))
                 .verifyComplete();
-        verify(updateTypeDefinitionUseCase).execute(typeDefinitionId, request, EXECUTOR);
+        verify(updateTypeDefinitionUseCase).execute(typeDefinitionId, UUID.fromString(TENANT), request, EXECUTOR);
     }
 
     @Test
     @DisplayName("each control endpoint should dispatch its action and return 204")
     void controlEndpoints() {
-        when(controlTypeDefinitionUseCase.execute(eq(typeDefinitionId), any(ControlTypeDefinitionUseCase.Action.class), eq(EXECUTOR)))
+        when(controlTypeDefinitionUseCase.execute(eq(typeDefinitionId), eq(UUID.fromString(TENANT)), any(ControlTypeDefinitionUseCase.Action.class), eq(EXECUTOR)))
                 .thenReturn(Mono.empty());
 
-        StepVerifier.create(controller.controlActivate(typeDefinitionId, EXECUTOR))
+        StepVerifier.create(controller.controlActivate(typeDefinitionId, TENANT, EXECUTOR))
                 .assertNext(r -> assertEquals(HttpStatus.NO_CONTENT, r.getStatus())).verifyComplete();
-        StepVerifier.create(controller.controlDeactivate(typeDefinitionId, EXECUTOR))
+        StepVerifier.create(controller.controlDeactivate(typeDefinitionId, TENANT, EXECUTOR))
                 .assertNext(r -> assertEquals(HttpStatus.NO_CONTENT, r.getStatus())).verifyComplete();
 
-        verify(controlTypeDefinitionUseCase).execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR);
-        verify(controlTypeDefinitionUseCase).execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR);
+        verify(controlTypeDefinitionUseCase).execute(typeDefinitionId, UUID.fromString(TENANT), ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR);
+        verify(controlTypeDefinitionUseCase).execute(typeDefinitionId, UUID.fromString(TENANT), ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR);
     }
 
     @Test
     @DisplayName("a control endpoint should surface an illegal transition (409) from the use case")
     void controlIllegalTransition() {
-        when(controlTypeDefinitionUseCase.execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
+        when(controlTypeDefinitionUseCase.execute(typeDefinitionId, UUID.fromString(TENANT), ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
                 .thenReturn(Mono.error(new InvalidTypeDefinitionStatusException("illegal")));
 
-        StepVerifier.create(controller.controlDeactivate(typeDefinitionId, EXECUTOR))
+        StepVerifier.create(controller.controlDeactivate(typeDefinitionId, TENANT, EXECUTOR))
                 .expectError(InvalidTypeDefinitionStatusException.class)
                 .verify();
     }
@@ -176,9 +178,9 @@ class TypeDefinitionControllerTest {
     @DisplayName("retrieveAuditLog should return the ledger entries as a list")
     void retrieveAuditLog() {
         TypeDefinitionAuditEntryResponse entry = new TypeDefinitionAuditEntryResponse(Instant.now(), "INITIATED", EXECUTOR, null, "DRAFT", "d");
-        when(retrieveTypeDefinitionAuditLogUseCase.execute(typeDefinitionId)).thenReturn(Mono.just(List.of(entry)));
+        when(retrieveTypeDefinitionAuditLogUseCase.execute(typeDefinitionId, UUID.fromString(TENANT))).thenReturn(Mono.just(List.of(entry)));
 
-        StepVerifier.create(controller.retrieveAuditLog(typeDefinitionId))
+        StepVerifier.create(controller.retrieveAuditLog(typeDefinitionId, TENANT))
                 .assertNext(list -> {
                     assertEquals(1, list.size());
                     assertEquals("INITIATED", list.get(0).action());

@@ -60,7 +60,7 @@ atomic backstop for the concurrent-activation race.
 
 ## BIAN Behavior Qualifier Contract (`/ci-type-catalog/v1`)
 
-`X-Tenant-Id` is mandatory on `initiate`, the collection `retrieve` and `active-schema/retrieve`;
+`X-Tenant-Id` is mandatory on every route (ADR-034: another tenant's type definition is a 404);
 `X-Executor` is mandatory on every mutation. There is no `DELETE`.
 
 | Behavior Qualifier | Method & Path |

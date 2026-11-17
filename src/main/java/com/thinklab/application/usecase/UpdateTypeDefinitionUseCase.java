@@ -31,12 +31,12 @@ public class UpdateTypeDefinitionUseCase {
         this.jsonSchemaValidatorPort = jsonSchemaValidatorPort;
     }
 
-    public Mono<Void> execute(UUID id, UpdateTypeDefinitionRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, UpdateTypeDefinitionRequest request, String executor) {
         log.info("[USE CASE] Updating schema for type definition ID: {}", id);
 
         jsonSchemaValidatorPort.validateSyntax(request.jsonSchema());
 
-        return typeDefinitionRepository.findById(id)
+        return typeDefinitionRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new TypeDefinitionNotFoundException(id)))
                 .flatMap(typeDefinition -> {
                     TypeDefinitionAuditEntry entry = typeDefinition.updateSchema(request.jsonSchema(), executor);

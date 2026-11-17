@@ -110,7 +110,7 @@ class TypeDefinitionMongoRepositoryAdapterTest {
         when(mongoCollection.find(any(Bson.class))).thenReturn(publisher);
         when(publisher.first()).thenReturn(Mono.just(TypeDefinitionPersistenceMapper.toDocument(typeDefinition)));
 
-        StepVerifier.create(adapter.findById(typeDefinitionId))
+        StepVerifier.create(adapter.findById(typeDefinitionId, UUID.randomUUID()))
                 .expectNextMatches(found -> found.getId().equals(typeDefinitionId)
                         && found.getStatus() == TypeDefinitionStatus.DRAFT)
                 .verifyComplete();
@@ -123,7 +123,7 @@ class TypeDefinitionMongoRepositoryAdapterTest {
         when(mongoCollection.find(any(Bson.class))).thenReturn(publisher);
         when(publisher.first()).thenReturn(Mono.empty());
 
-        StepVerifier.create(adapter.findById(typeDefinitionId)).verifyComplete();
+        StepVerifier.create(adapter.findById(typeDefinitionId, UUID.randomUUID())).verifyComplete();
     }
 
     @Test

@@ -63,7 +63,7 @@ class TypeDefinitionPersistenceIT implements TestPropertyProvider {
         UUID organisationId = UUID.randomUUID();
         TypeDefinition created = repository.create(newDefinition(organisationId, CiCategory.LAPTOP)).block();
 
-        TypeDefinition found = repository.findById(created.getId()).block();
+        TypeDefinition found = repository.findById(created.getId(), created.getOrganisationId()).block();
 
         assertEquals(TypeDefinitionStatus.DRAFT, found.getStatus());
         assertEquals(CiCategory.LAPTOP, found.getCategory());
@@ -80,7 +80,7 @@ class TypeDefinitionPersistenceIT implements TestPropertyProvider {
 
         repository.updateSchema(created.getId(), "{\"type\":\"string\"}", entry).block();
 
-        TypeDefinition found = repository.findById(created.getId()).block();
+        TypeDefinition found = repository.findById(created.getId(), created.getOrganisationId()).block();
         assertEquals("{\"type\":\"string\"}", found.getJsonSchema());
         assertEquals(2, found.getAuditTrail().size());
     }
@@ -94,7 +94,7 @@ class TypeDefinitionPersistenceIT implements TestPropertyProvider {
 
         repository.updateStatus(created.getId(), TypeDefinitionStatus.ACTIVE, entry).block();
 
-        TypeDefinition found = repository.findById(created.getId()).block();
+        TypeDefinition found = repository.findById(created.getId(), created.getOrganisationId()).block();
         assertEquals(TypeDefinitionStatus.ACTIVE, found.getStatus());
     }
 
@@ -123,7 +123,7 @@ class TypeDefinitionPersistenceIT implements TestPropertyProvider {
                 java.time.Instant.now(), "STATUS_CHANGED", EXECUTOR, TypeDefinitionStatus.DRAFT, TypeDefinitionStatus.ACTIVE, "activated");
         repository.updateStatus(active.getId(), TypeDefinitionStatus.ACTIVE, activateEntry).block();
 
-        TypeDefinition stillDraft = repository.findById(draft.getId()).block();
+        TypeDefinition stillDraft = repository.findById(draft.getId(), draft.getOrganisationId()).block();
         assertEquals(TypeDefinitionStatus.DRAFT, stillDraft.getStatus());
     }
 
@@ -181,7 +181,7 @@ class TypeDefinitionPersistenceIT implements TestPropertyProvider {
         TypeDefinitionAuditEntry entry = new TypeDefinitionAuditEntry(
                 java.time.Instant.now(), "UPDATED", EXECUTOR, TypeDefinitionStatus.DRAFT, TypeDefinitionStatus.DRAFT, "x");
 
-        assertNull(repository.findById(unknown).block());
+        assertNull(repository.findById(unknown, UUID.randomUUID()).block());
         assertThrows(TypeDefinitionNotFoundException.class, () -> repository.updateSchema(unknown, "{}", entry).block());
     }
 

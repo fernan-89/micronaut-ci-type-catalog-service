@@ -251,7 +251,12 @@
           ],
           "name": "02. Retrieve TypeDefinition By ID",
           "request": {
-            "header": [],
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              }
+            ],
             "method": "GET",
             "url": {
               "host": [
@@ -293,6 +298,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -328,6 +337,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -361,7 +374,12 @@
           ],
           "name": "05. Retrieve (Confirm ACTIVE)",
           "request": {
-            "header": [],
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              }
+            ],
             "method": "GET",
             "url": {
               "host": [
@@ -441,6 +459,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -485,6 +507,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -520,6 +546,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -558,7 +588,12 @@
           ],
           "name": "10. Retrieve Audit Ledger (in order, starting with INITIATED)",
           "request": {
-            "header": [],
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              }
+            ],
             "method": "GET",
             "url": {
               "host": [
@@ -634,6 +669,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -871,7 +910,12 @@
           ],
           "name": "05. Retrieve - Non-existent UUID (404)",
           "request": {
-            "header": [],
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              }
+            ],
             "method": "GET",
             "url": {
               "host": [
@@ -901,7 +945,12 @@
           ],
           "name": "06. Retrieve - Malformed UUID Path (400)",
           "request": {
-            "header": [],
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
+              }
+            ],
             "method": "GET",
             "url": {
               "host": [
@@ -1033,6 +1082,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1069,6 +1122,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1119,6 +1176,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1207,6 +1268,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1243,6 +1308,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1263,6 +1332,139 @@
         }
       ],
       "name": "02. Negative Tests & Boundary Validation"
+    },
+    {
+      "name": "04. Tenant Isolation on the By-Id Routes",
+      "item": [
+        {
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('otherOrganisationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "90. Read it as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "{{typeDefinitionId}}",
+                "retrieve"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/retrieve"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "91. Its audit log as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "{{typeDefinitionId}}",
+                "audit-log",
+                "retrieve"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/audit-log/retrieve"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "92. Change it as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ci-type-catalog",
+                "v1",
+                "{{typeDefinitionId}}",
+                "control",
+                "activate"
+              ],
+              "raw": "{{base_url}}/ci-type-catalog/v1/{{typeDefinitionId}}/control/activate"
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

@@ -32,10 +32,10 @@ public class RetrieveTypeDefinitionAuditLogUseCase {
         this.typeDefinitionRepository = typeDefinitionRepository;
     }
 
-    public Mono<List<TypeDefinitionAuditEntryResponse>> execute(UUID id) {
+    public Mono<List<TypeDefinitionAuditEntryResponse>> execute(UUID id, UUID organisationId) {
         log.info("[USE CASE] Retrieving audit ledger for type definition ID: {}", id);
 
-        return typeDefinitionRepository.findById(id)
+        return typeDefinitionRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new TypeDefinitionNotFoundException(id)))
                 .flatMapMany(typeDefinition -> Flux.fromIterable(typeDefinition.getAuditTrail()))
                 .map(TypeDefinitionMapper::toResponse)

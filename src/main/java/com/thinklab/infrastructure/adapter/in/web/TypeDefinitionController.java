@@ -94,10 +94,10 @@ public class TypeDefinitionController {
 
     /** Behavior Qualifier: {@code retrieve}. Fetches a single TypeDefinition by UUID. */
     @Get("/{id}/retrieve")
-    public Mono<HttpResponse<TypeDefinitionResponse>> retrieveById(@PathVariable UUID id) {
+    public Mono<HttpResponse<TypeDefinitionResponse>> retrieveById(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId) {
         log.info("[ACTION: RETRIEVE_TYPE_DEFINITION] Received request to get type definition by ID: {}", id);
 
-        return retrieveTypeDefinitionUseCase.execute(id).map(HttpResponse::ok);
+        return retrieveTypeDefinitionUseCase.execute(id, UUID.fromString(tenantId)).map(HttpResponse::ok);
     }
 
     /** Behavior Qualifier: {@code retrieve} (collection). Lists TypeDefinitions scoped to a tenant. */
@@ -116,33 +116,33 @@ public class TypeDefinitionController {
     /** Behavior Qualifier: {@code update}. Replaces the schema text; only legal outside ACTIVE. */
     @Put("/{id}/update")
     public Mono<HttpResponse<Void>> update(
-            @PathVariable UUID id,
+            @PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId,
             @Header(EXECUTOR_HEADER) @NotBlank String executor,
             @Body @Valid UpdateTypeDefinitionRequest request
     ) {
         log.info("[ACTION: UPDATE_TYPE_DEFINITION] [EXECUTOR: {}] Received request to update type definition ID: {}", executor, id);
 
-        return updateTypeDefinitionUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+        return updateTypeDefinitionUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/activate}. DRAFT or INACTIVE -> ACTIVE. */
     @Put("/{id}/control/activate")
-    public Mono<HttpResponse<Void>> controlActivate(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlTypeDefinitionUseCase.Action.ACTIVATE, executor);
+    public Mono<HttpResponse<Void>> controlActivate(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlTypeDefinitionUseCase.Action.ACTIVATE, executor);
     }
 
     /** Behavior Qualifier: {@code control/deactivate}. ACTIVE -> INACTIVE. */
     @Put("/{id}/control/deactivate")
-    public Mono<HttpResponse<Void>> controlDeactivate(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlTypeDefinitionUseCase.Action.DEACTIVATE, executor);
+    public Mono<HttpResponse<Void>> controlDeactivate(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, executor);
     }
 
     /** Behavior Qualifier: {@code audit-log/retrieve}. Immutable forensic ledger of the TypeDefinition. */
     @Get("/{id}/audit-log/retrieve")
-    public Mono<List<TypeDefinitionAuditEntryResponse>> retrieveAuditLog(@PathVariable UUID id) {
+    public Mono<List<TypeDefinitionAuditEntryResponse>> retrieveAuditLog(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId) {
         log.info("[ACTION: RETRIEVE_TYPE_DEFINITION_AUDIT_LOG] Received request for audit ledger of type definition ID: {}", id);
 
-        return retrieveTypeDefinitionAuditLogUseCase.execute(id);
+        return retrieveTypeDefinitionAuditLogUseCase.execute(id, UUID.fromString(tenantId));
     }
 
     /**
@@ -159,9 +159,9 @@ public class TypeDefinitionController {
         return getActiveSchemaUseCase.execute(UUID.fromString(tenantId), category).map(HttpResponse::ok);
     }
 
-    private Mono<HttpResponse<Void>> control(UUID id, ControlTypeDefinitionUseCase.Action action, String executor) {
+    private Mono<HttpResponse<Void>> control(UUID id, String tenantId, ControlTypeDefinitionUseCase.Action action, String executor) {
         log.info("[ACTION: CONTROL_TYPE_DEFINITION] [EXECUTOR: {}] {} for ID: {}", executor, action, id);
 
-        return controlTypeDefinitionUseCase.execute(id, action, executor).thenReturn(HttpResponse.noContent());
+        return controlTypeDefinitionUseCase.execute(id, UUID.fromString(tenantId), action, executor).thenReturn(HttpResponse.noContent());
     }
 }
