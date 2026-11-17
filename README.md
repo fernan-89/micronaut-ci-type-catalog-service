@@ -84,7 +84,7 @@ that 404 as a routine "no schema configured, skip validation" signal, not an err
 |---|---|---|
 | `ERR-CTC-00404` | 404 | TypeDefinition not found, or no ACTIVE definition configured for a category |
 | `ERR-CTC-00400` | 400 | The supplied `jsonSchema` text does not parse as a valid JSON Schema document (ADR-031) |
-| `ERR-CTC-00409` | 409 | Illegal lifecycle transition, or activating a duplicate for an already-ACTIVE category (ADR-019/032) |
+| `ERR-CTC-00409` | 409 | Illegal lifecycle transition, activating a duplicate for an already-ACTIVE category (ADR-019/032), or a change that lost a race with another on the same definition (ADR-033) |
 | `ERR-VALIDATION-00400` | 400 | Payload/header/identifier validation failure |
 | `ERR-INTERNAL-00500` | 500 | Unexpected technical failure |
 
