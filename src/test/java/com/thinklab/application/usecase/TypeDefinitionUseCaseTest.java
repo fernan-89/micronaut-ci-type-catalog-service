@@ -123,9 +123,9 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Retrieve: should project the aggregate to a response")
     void retrieveSuccess() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
 
-        StepVerifier.create(new RetrieveTypeDefinitionUseCase(typeDefinitionRepository).execute(typeDefinitionId))
+        StepVerifier.create(new RetrieveTypeDefinitionUseCase(typeDefinitionRepository).execute(typeDefinitionId, organisationId))
                 .assertNext(response -> {
                     assertEquals(typeDefinitionId, response.id());
                     assertEquals("NETWORK_DEVICE", response.category());
@@ -136,9 +136,9 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Retrieve: should fail with TypeDefinitionNotFoundException (404) when absent")
     void retrieveNotFound() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.empty());
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.empty());
 
-        StepVerifier.create(new RetrieveTypeDefinitionUseCase(typeDefinitionRepository).execute(typeDefinitionId))
+        StepVerifier.create(new RetrieveTypeDefinitionUseCase(typeDefinitionRepository).execute(typeDefinitionId, organisationId))
                 .expectErrorSatisfies(error -> {
                     assertEquals(TypeDefinitionNotFoundException.class, error.getClass());
                     assertEquals("ERR-CTC-00404", ((TypeDefinitionNotFoundException) error).getErrorCode());
@@ -166,12 +166,12 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Update: should validate syntax, mutate the aggregate and persist the change with its audit entry")
     void updateSuccess() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
         when(typeDefinitionRepository.updateSchema(eq(typeDefinitionId), eq("{\"type\":\"string\"}"), any(TypeDefinitionAuditEntry.class)))
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(new UpdateTypeDefinitionUseCase(typeDefinitionRepository, jsonSchemaValidatorPort)
-                        .execute(typeDefinitionId, new UpdateTypeDefinitionRequest("{\"type\":\"string\"}"), "tech-9"))
+                        .execute(typeDefinitionId, organisationId, new UpdateTypeDefinitionRequest("{\"type\":\"string\"}"), "tech-9"))
                 .verifyComplete();
 
         verify(jsonSchemaValidatorPort).validateSyntax("{\"type\":\"string\"}");
@@ -184,10 +184,10 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Update: should fail with 404 when the type definition does not exist and never write")
     void updateNotFound() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.empty());
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.empty());
 
         StepVerifier.create(new UpdateTypeDefinitionUseCase(typeDefinitionRepository, jsonSchemaValidatorPort)
-                        .execute(typeDefinitionId, new UpdateTypeDefinitionRequest(SCHEMA), EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, new UpdateTypeDefinitionRequest(SCHEMA), EXECUTOR))
                 .expectError(TypeDefinitionNotFoundException.class)
                 .verify();
 
@@ -198,10 +198,10 @@ class TypeDefinitionUseCaseTest {
     @DisplayName("Update: should reject editing an ACTIVE definition (409) and never write")
     void updateRejectedWhenActive() {
         typeDefinition.activate(EXECUTOR);
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
 
         StepVerifier.create(new UpdateTypeDefinitionUseCase(typeDefinitionRepository, jsonSchemaValidatorPort)
-                        .execute(typeDefinitionId, new UpdateTypeDefinitionRequest(SCHEMA), EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, new UpdateTypeDefinitionRequest(SCHEMA), EXECUTOR))
                 .expectError(InvalidTypeDefinitionStatusException.class)
                 .verify();
 
@@ -213,14 +213,14 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Control: ACTIVATE on a DRAFT definition persists ACTIVE with its audit entry, after checking for siblings")
     void controlActivateSuccess() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
         when(typeDefinitionRepository.existsActiveByOrganisationIdAndCategory(organisationId, CiCategory.NETWORK_DEVICE))
                 .thenReturn(Mono.just(false));
         when(typeDefinitionRepository.updateStatus(eq(typeDefinitionId), eq(TypeDefinitionStatus.ACTIVE), any(TypeDefinitionAuditEntry.class)))
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(new ControlTypeDefinitionUseCase(typeDefinitionRepository)
-                        .execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
                 .verifyComplete();
 
         ArgumentCaptor<TypeDefinitionAuditEntry> captor = ArgumentCaptor.forClass(TypeDefinitionAuditEntry.class);
@@ -232,12 +232,12 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Control: ACTIVATE is rejected (409) when a sibling is already ACTIVE, before mutating the aggregate")
     void controlActivateRejectedWhenSiblingActive() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
         when(typeDefinitionRepository.existsActiveByOrganisationIdAndCategory(organisationId, CiCategory.NETWORK_DEVICE))
                 .thenReturn(Mono.just(true));
 
         StepVerifier.create(new ControlTypeDefinitionUseCase(typeDefinitionRepository)
-                        .execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
                 .expectErrorSatisfies(error -> {
                     assertEquals(DuplicateTypeDefinitionException.class, error.getClass());
                     assertEquals("ERR-CTC-00409", ((DuplicateTypeDefinitionException) error).getErrorCode());
@@ -252,12 +252,12 @@ class TypeDefinitionUseCaseTest {
     @DisplayName("Control: DEACTIVATE on an ACTIVE definition persists INACTIVE, with no sibling check")
     void controlDeactivateSuccess() {
         typeDefinition.activate(EXECUTOR);
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
         when(typeDefinitionRepository.updateStatus(eq(typeDefinitionId), eq(TypeDefinitionStatus.INACTIVE), any(TypeDefinitionAuditEntry.class)))
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(new ControlTypeDefinitionUseCase(typeDefinitionRepository)
-                        .execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
                 .verifyComplete();
 
         verify(typeDefinitionRepository, never()).existsActiveByOrganisationIdAndCategory(any(), any());
@@ -266,10 +266,10 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Control: DEACTIVATE on a DRAFT definition is an illegal transition (409) and never writes")
     void controlDeactivateIllegalTransition() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
 
         StepVerifier.create(new ControlTypeDefinitionUseCase(typeDefinitionRepository)
-                        .execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, ControlTypeDefinitionUseCase.Action.DEACTIVATE, EXECUTOR))
                 .expectError(InvalidTypeDefinitionStatusException.class)
                 .verify();
 
@@ -279,10 +279,10 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Control: should fail with 404 when the type definition does not exist")
     void controlNotFound() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.empty());
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.empty());
 
         StepVerifier.create(new ControlTypeDefinitionUseCase(typeDefinitionRepository)
-                        .execute(typeDefinitionId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
+                        .execute(typeDefinitionId, organisationId, ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR))
                 .expectError(TypeDefinitionNotFoundException.class)
                 .verify();
     }
@@ -293,9 +293,9 @@ class TypeDefinitionUseCaseTest {
     @DisplayName("Audit log: should project every ledger entry in order as a Mono<List<...>>")
     void auditLogSuccess() {
         typeDefinition.activate(EXECUTOR);
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.just(typeDefinition));
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.just(typeDefinition));
 
-        StepVerifier.create(new RetrieveTypeDefinitionAuditLogUseCase(typeDefinitionRepository).execute(typeDefinitionId))
+        StepVerifier.create(new RetrieveTypeDefinitionAuditLogUseCase(typeDefinitionRepository).execute(typeDefinitionId, organisationId))
                 .assertNext(entries -> {
                     assertEquals(2, entries.size());
                     assertEquals("INITIATED", entries.get(0).action());
@@ -310,9 +310,9 @@ class TypeDefinitionUseCaseTest {
     @Test
     @DisplayName("Audit log: should fail with 404 when the type definition does not exist")
     void auditLogNotFound() {
-        when(typeDefinitionRepository.findById(typeDefinitionId)).thenReturn(Mono.empty());
+        when(typeDefinitionRepository.findById(typeDefinitionId, organisationId)).thenReturn(Mono.empty());
 
-        StepVerifier.create(new RetrieveTypeDefinitionAuditLogUseCase(typeDefinitionRepository).execute(typeDefinitionId))
+        StepVerifier.create(new RetrieveTypeDefinitionAuditLogUseCase(typeDefinitionRepository).execute(typeDefinitionId, organisationId))
                 .expectError(TypeDefinitionNotFoundException.class)
                 .verify();
     }
@@ -346,5 +346,18 @@ class TypeDefinitionUseCaseTest {
                     assertEquals("ERR-CTC-00404", ((TypeDefinitionNotFoundException) error).getErrorCode());
                 })
                 .verify();
+    }
+
+    @Test
+    @DisplayName("every by-id lookup is made in the caller's tenant: another tenant's type definition is the same as none, and nothing is written")
+    void anotherTenantsTypeDefinition() {
+        UUID id = UUID.randomUUID();
+        UUID other = UUID.randomUUID();
+        when(typeDefinitionRepository.findById(id, other)).thenReturn(Mono.empty());
+
+        StepVerifier.create(new RetrieveTypeDefinitionUseCase(typeDefinitionRepository).execute(id, other)).expectError(TypeDefinitionNotFoundException.class).verify();
+        StepVerifier.create(new RetrieveTypeDefinitionAuditLogUseCase(typeDefinitionRepository).execute(id, other)).expectError(TypeDefinitionNotFoundException.class).verify();
+
+        org.mockito.Mockito.verifyNoMoreInteractions(typeDefinitionRepository);
     }
 }

@@ -37,10 +37,10 @@ public class ControlTypeDefinitionUseCase {
         this.typeDefinitionRepository = typeDefinitionRepository;
     }
 
-    public Mono<Void> execute(UUID id, Action action, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, Action action, String executor) {
         log.info("[USE CASE] Controlling type definition lifecycle: {} for ID: {}", action, id);
 
-        return typeDefinitionRepository.findById(id)
+        return typeDefinitionRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new TypeDefinitionNotFoundException(id)))
                 .flatMap(typeDefinition -> action.apply(typeDefinition, executor, typeDefinitionRepository));
     }

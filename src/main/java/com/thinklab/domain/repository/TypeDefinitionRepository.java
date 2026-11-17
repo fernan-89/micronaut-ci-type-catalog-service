@@ -22,7 +22,7 @@ public interface TypeDefinitionRepository {
 
     Mono<TypeDefinition> create(TypeDefinition typeDefinition);
 
-    Mono<TypeDefinition> findById(UUID id);
+    Mono<TypeDefinition> findById(UUID id, UUID organisationId);
 
     /**
      * Tenant-scoped listing, optionally filtered by category and/or status.

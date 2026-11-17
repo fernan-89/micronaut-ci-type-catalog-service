@@ -44,12 +44,12 @@ class TransitionRaceIT implements TestPropertyProvider {
         TypeDefinition draft = repository.create(TypeDefinition.createNew(UUID.randomUUID(), UUID.randomUUID(), CiCategory.SERVER, "{\"type\":\"object\"}", EXECUTOR)).block();
 
         List<String> results = Flux.range(0, 10)
-                .flatMap(i -> control.execute(draft.getId(), ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR).thenReturn("OK")
+                .flatMap(i -> control.execute(draft.getId(), draft.getOrganisationId(), ControlTypeDefinitionUseCase.Action.ACTIVATE, EXECUTOR).thenReturn("OK")
                         .onErrorResume(e -> Mono.just(e.getClass().getSimpleName())), 10)
                 .collectList().block(Duration.ofSeconds(30));
 
         assertEquals(1, results.stream().filter("OK"::equals).count(), results.toString());
-        TypeDefinition stored = repository.findById(draft.getId()).block();
+        TypeDefinition stored = repository.findById(draft.getId(), draft.getOrganisationId()).block();
         assertEquals(TypeDefinitionStatus.ACTIVE, stored.getStatus());
         assertEquals(2, stored.getAuditTrail().size(), "one entry for creating and one for the single activation that won");
         assertEquals(9, results.stream().filter(r -> !"OK".equals(r)).count(), results.toString());

@@ -23,10 +23,10 @@ public class RetrieveTypeDefinitionUseCase {
         this.typeDefinitionRepository = typeDefinitionRepository;
     }
 
-    public Mono<TypeDefinitionResponse> execute(UUID id) {
+    public Mono<TypeDefinitionResponse> execute(UUID id, UUID organisationId) {
         log.info("[USE CASE] Retrieving type definition ID: {}", id);
 
-        return typeDefinitionRepository.findById(id)
+        return typeDefinitionRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new TypeDefinitionNotFoundException(id)))
                 .map(TypeDefinitionMapper::toResponse);
     }
