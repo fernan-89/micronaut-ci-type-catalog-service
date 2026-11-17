@@ -11,6 +11,7 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.micronaut.context.annotation.Property;
 import com.thinklab.domain.exception.DuplicateTypeDefinitionException;
+import com.thinklab.domain.exception.InvalidTypeDefinitionStatusException;
 import com.thinklab.domain.exception.TypeDefinitionNotFoundException;
 import com.thinklab.domain.model.TypeDefinition;
 import com.thinklab.domain.model.TypeDefinition.CiCategory;
@@ -114,7 +115,7 @@ public class TypeDefinitionMongoRepositoryAdapter implements TypeDefinitionRepos
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
 
-        return executeUpdate(id, update);
+        return executeGuarded(id, auditEntry.fromStatus(), update);
     }
 
     @Override
@@ -125,7 +126,7 @@ public class TypeDefinitionMongoRepositoryAdapter implements TypeDefinitionRepos
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
 
-        return executeUpdate(id, update)
+        return executeGuarded(id, auditEntry.fromStatus(), update)
                 .onErrorMap(TypeDefinitionMongoRepositoryAdapter::isDuplicateActiveDefinition, e -> new DuplicateTypeDefinitionException(
                         "An ACTIVE TypeDefinition already exists for this organisation and category."));
     }
@@ -166,13 +167,19 @@ public class TypeDefinitionMongoRepositoryAdapter implements TypeDefinitionRepos
                 && write.getError().getMessage().contains(TypeDefinitionIndexInitializer.ACTIVE_CATEGORY_INDEX);
     }
 
-    private Mono<Void> executeUpdate(UUID id, Bson update) {
-        return Mono.from(getCollection().updateOne(Filters.eq(FIELD_ID, id), update))
+    /** A guarded write (platform race audit): only if the type definition still has the status the caller read, the {@code fromStatus} of the audit entry. */
+    private Mono<Void> executeGuarded(UUID id, Object fromStatus, Bson update) {
+        Bson filter = Filters.and(Filters.eq(FIELD_ID, id), Filters.eq(FIELD_STATUS, fromStatus.toString()));
+        return Mono.from(getCollection().updateOne(filter, update))
                 .flatMap(result -> {
-                    if (result.getMatchedCount() == 0) {
-                        return Mono.error(new TypeDefinitionNotFoundException(id));
+                    if (result.getMatchedCount() > 0) {
+                        return Mono.<Void>empty();
                     }
-                    return Mono.empty();
+                    return Mono.from(getCollection().countDocuments(Filters.eq(FIELD_ID, id)))
+                            .flatMap(count -> count == 0
+                                    ? Mono.<Void>error(new TypeDefinitionNotFoundException(id))
+                                    : Mono.<Void>error(new InvalidTypeDefinitionStatusException(
+                                            "The type definition was changed by someone else while this change was being recorded; read it again and retry.")));
                 });
     }
 }
